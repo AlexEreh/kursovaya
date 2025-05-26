@@ -48,7 +48,7 @@ type StegoApp struct {
 func NewStegoApp() *StegoApp {
 	a := app.New()
 	w := a.NewWindow("Стеганография с фракталами")
-	w.Resize(fyne.NewSize(1000, 700))
+	w.Resize(fyne.NewSize(1200, 700))
 
 	stegApp := &StegoApp{
 		app:    a,
@@ -73,10 +73,12 @@ func (a *StegoApp) createEmbedTab() *container.TabItem {
 	// Cover Image Selection
 	a.coverImagePath = widget.NewEntry()
 	coverBrowse := widget.NewButton("Выбрать", a.browseCoverImage)
+	coverBrowse.Resize(fyne.NewSize(120, 38))
 
 	// Secret Data Selection
 	a.secretDataPath = widget.NewEntry()
 	secretBrowse := widget.NewButton("Выбрать", a.browseSecretData)
+	secretBrowse.Resize(fyne.NewSize(120, 38))
 
 	// Algorithm Selection
 	a.algorithm = widget.NewRadioGroup([]string{AlgorithmFractal}, nil)
@@ -115,6 +117,7 @@ func (a *StegoApp) createEmbedTab() *container.TabItem {
 	// Output Path
 	a.outputPath = widget.NewEntry()
 	outputBrowse := widget.NewButton("Выбрать", a.browseOutput)
+	outputBrowse.Resize(fyne.NewSize(120, 38))
 
 	// Embed Button
 	embedButton := widget.NewButton("Встроить данные", a.embedData)
@@ -133,16 +136,16 @@ func (a *StegoApp) createEmbedTab() *container.TabItem {
 	// Form Layout
 	form := container.NewVBox(
 		widget.NewLabel("Стеганографический контейнер:"),
-		container.NewHBox(a.coverImagePath, coverBrowse),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, a.coverImagePath, coverBrowse),
 		widget.NewLabel("Файл для встраивания:"),
-		container.NewHBox(a.secretDataPath, secretBrowse),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, a.secretDataPath, secretBrowse),
 		widget.NewLabel("Алгоритм встраивания:"),
 		a.algorithm,
 		a.fractalParamsGroup,
 		rateLabel,
 		a.embeddingRate,
 		widget.NewLabel("Выходной файл:"),
-		container.NewHBox(a.outputPath, outputBrowse),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, a.outputPath, outputBrowse),
 		embedButton,
 		previews,
 	)
@@ -154,10 +157,12 @@ func (a *StegoApp) createExtractTab() *container.TabItem {
 	// Stego Image Selection
 	a.stegoImagePath = widget.NewEntry()
 	stegoBrowse := widget.NewButton("Выбрать", a.browseStegoImage)
+	stegoBrowse.Resize(fyne.NewSize(120, 38))
 
 	// Output Path
 	outputPath := widget.NewEntry()
 	outputBrowse := widget.NewButton("Выбрать", a.browseOutput)
+	outputBrowse.Resize(fyne.NewSize(120, 38))
 
 	// Algorithm Selection
 	algorithm := widget.NewRadioGroup([]string{AlgorithmFractal}, nil)
@@ -169,9 +174,9 @@ func (a *StegoApp) createExtractTab() *container.TabItem {
 	// Form Layout
 	form := container.NewVBox(
 		widget.NewLabel("Входное изображение:"),
-		container.NewHBox(a.stegoImagePath, stegoBrowse),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, a.stegoImagePath, stegoBrowse),
 		widget.NewLabel("Выходной файл с данными:"),
-		container.NewHBox(outputPath, outputBrowse),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, outputPath, outputBrowse),
 		widget.NewLabel("Алгоритм извлечения:"),
 		algorithm,
 		extractButton,
@@ -186,11 +191,13 @@ func (a *StegoApp) createMetricsTab() *container.TabItem {
 	originalBrowse := widget.NewButton("Выбрать", func() {
 		a.browseImage(a.originalImagePath)
 	})
+	originalBrowse.Resize(fyne.NewSize(120, 38))
 
 	a.stegoImagePathForMetrics = widget.NewEntry()
 	stegoBrowse := widget.NewButton("Выбрать", func() {
 		a.browseImage(a.stegoImagePathForMetrics)
 	})
+	stegoBrowse.Resize(fyne.NewSize(120, 38))
 
 	// Calculate Metrics Button
 	metricsButton := widget.NewButton("Посчитать метрики встраивания", a.calculateMetrics)
@@ -204,10 +211,10 @@ func (a *StegoApp) createMetricsTab() *container.TabItem {
 
 	// Form Layout
 	form := container.NewVBox(
-		widget.NewLabel("Пустой стеганографический контейнер:"),
-		container.NewHBox(a.originalImagePath, originalBrowse),
-		widget.NewLabel("Полный стеганографический контейнер:"),
-		container.NewHBox(a.stegoImagePathForMetrics, stegoBrowse),
+		widget.NewLabel("Оригинальное изображение:"),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, a.originalImagePath, originalBrowse),
+		widget.NewLabel("Стеганографическое изображение:"),
+		container.New(&weightedLayout{leftWeight: 0.8, rightWeight: 0.2}, a.stegoImagePathForMetrics, stegoBrowse),
 		metricsButton,
 		widget.NewLabel("Результаты метрик:"),
 		a.metricsText,
@@ -595,4 +602,37 @@ func calculateImageMetrics(original, stego image.Image) map[string]float64 {
 func main() {
 	stegoApp := NewStegoApp()
 	stegoApp.window.ShowAndRun()
+}
+
+// weightedLayout is a custom layout that divides space with custom weights
+type weightedLayout struct {
+	leftWeight  float32
+	rightWeight float32
+}
+
+func (w *weightedLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
+	if len(objects) != 2 {
+		return fyne.NewSize(0, 0)
+	}
+	leftMin := objects[0].MinSize()
+	rightMin := objects[1].MinSize()
+	return fyne.NewSize(leftMin.Width+rightMin.Width, fyne.Max(leftMin.Height, rightMin.Height))
+}
+
+func (w *weightedLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
+	if len(objects) != 2 {
+		return
+	}
+
+	totalWeight := w.leftWeight + w.rightWeight
+	leftWidth := float32(containerSize.Width) * (w.leftWeight / totalWeight)
+
+	// Left object
+	objects[0].Resize(fyne.NewSize(leftWidth, containerSize.Height))
+	objects[0].Move(fyne.NewPos(0, 0))
+
+	// Right object
+	rightWidth := containerSize.Width - leftWidth
+	objects[1].Resize(fyne.NewSize(rightWidth, containerSize.Height))
+	objects[1].Move(fyne.NewPos(leftWidth, 0))
 }

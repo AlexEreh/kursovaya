@@ -16,7 +16,7 @@ func NewFractalStego() *FractalStego {
 }
 
 func (f *FractalStego) Name() string {
-	return "Fractal"
+	return "Фрактал"
 }
 
 func (f *FractalStego) Embed(cover image.Image, data []byte, config Config) (image.Image, error) {

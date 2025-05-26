@@ -8,10 +8,8 @@ import (
 type Steganographer interface {
 	// Embed embeds the provided data into the cover image
 	Embed(cover image.Image, data []byte, config Config) (image.Image, error)
-
 	// Extract extracts the hidden data from the stego image
 	Extract(stego image.Image, config Config) ([]byte, error)
-
 	// Name returns the name of the algorithm
 	Name() string
 }
